@@ -35,10 +35,15 @@ func GenerateUserJSONFiles(dbConnection *sql.DB, templateFilePath string) error 
 		return fmt.Errorf("error reading template file: %v", err)
 	}
 
-	// Step 3: Create the users directory
+	// Step 3: Create the users directory and clear existing files
 	usersDir := "./sing-box/users"
 	if err := os.MkdirAll(usersDir, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating users directory: %v", err)
+	}
+
+	// Clear the contents of the users directory
+	if err := clearDirectory(usersDir); err != nil {
+		return err
 	}
 
 	// Step 4: Generate JSON files for each user
@@ -67,6 +72,22 @@ func GenerateUserJSONFiles(dbConnection *sql.DB, templateFilePath string) error 
 			continue // Continue processing other users even if one fails
 		}
 		log.Printf("Generated JSON file: %s", fileName)
+	}
+
+	return nil
+}
+
+// clearDirectory removes all files in the specified directory
+func clearDirectory(dir string) error {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("error reading directory %s: %v", dir, err)
+	}
+
+	for _, file := range files {
+		if err := os.Remove(filepath.Join(dir, file.Name())); err != nil {
+			log.Printf("error deleting file %s: %v", file.Name(), err)
+		}
 	}
 
 	return nil

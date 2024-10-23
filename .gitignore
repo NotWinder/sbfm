@@ -25,6 +25,7 @@ go.work.sum
 .env
 
 # generated files
+main
 config.db
 users.json
 sing-box
