@@ -26,6 +26,6 @@ go.work.sum
 
 # generated files
 config.db
-config.json
 users.json
-us.json
+sing-box
+template.json

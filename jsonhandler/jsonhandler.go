@@ -199,7 +199,7 @@ func GenerateConfigFile(db *sql.DB) error {
 	}
 
 	// Write JSON to file.
-	err = os.WriteFile("config.json", jsonData, 0644)
+	err = os.WriteFile("./sing-box/config.json", jsonData, 0644)
 	if err != nil {
 		return fmt.Errorf("error writing JSON to file: %v", err)
 	}
