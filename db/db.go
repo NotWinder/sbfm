@@ -62,7 +62,8 @@ func CreateTables(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS users (
 		    id INTEGER PRIMARY KEY AUTOINCREMENT,
 		    name TEXT NOT NULL,
-		    uuid TEXT NOT NULL UNIQUE
+		    uuid TEXT NOT NULL UNIQUE,
+		    sub TEXT NOT NULL UNIQUE
 		)
 	`)
 	if err != nil {

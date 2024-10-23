@@ -2,7 +2,9 @@
 package db
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,6 +16,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+func generateRandomString(length int) (string, error) {
+	// Create a byte slice with the desired length
+	bytes := make([]byte, length/2) // Since hex encoding doubles the length
+	_, err := rand.Read(bytes)      // Read random bytes into the slice
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the byte slice to a hex string
+	return hex.EncodeToString(bytes), nil
+}
+
 // AddUserManually is responsible for adding a user to the database duh
 func AddUserManually(db *sql.DB) {
 	var name string
@@ -22,7 +36,12 @@ func AddUserManually(db *sql.DB) {
 
 	uuid := uuid.New().String()
 
-	_, err := db.Exec("INSERT INTO users (name, uuid) VALUES (?, ?)", name, uuid)
+	sub, err := generateRandomString(50)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	_, err = db.Exec("INSERT INTO users (name, uuid, sub) VALUES (?, ?, ?)", name, uuid, sub)
 	if err != nil {
 		log.Printf("Error adding user: %v", err)
 		return
@@ -51,7 +70,12 @@ func AddUsersFromJSON(db *sql.DB) {
 	}
 
 	for _, user := range users {
-		_, err := db.Exec("INSERT INTO users (name, uuid) VALUES (?, ?)", user.Name, user.UUID)
+		_, err := db.Exec(
+			"INSERT INTO users (name, uuid, sub) VALUES (?, ?, ?)",
+			user.Name,
+			user.UUID,
+			user.SUB,
+		)
 		if err != nil {
 			log.Printf("Error adding user %s: %v", user.Name, err)
 		} else {
@@ -62,7 +86,7 @@ func AddUsersFromJSON(db *sql.DB) {
 
 // PrintAllUsers is responsible for fetching and printing all the users in the users table
 func PrintAllUsers(db *sql.DB) {
-	rows, err := db.Query("SELECT id, name, uuid FROM users")
+	rows, err := db.Query("SELECT id, name, uuid, sub FROM users")
 	if err != nil {
 		log.Printf("Error querying users: %v", err)
 		return
@@ -70,18 +94,18 @@ func PrintAllUsers(db *sql.DB) {
 	defer rows.Close()
 
 	fmt.Println("\nAll Users:")
-	fmt.Println("ID.Name.UUID")
-	fmt.Println("------------")
+	fmt.Println("ID.Name.UUID.Sub")
+	fmt.Println("----------------")
 
 	for rows.Next() {
 		var id int
-		var name, uuid string
-		err := rows.Scan(&id, &name, &uuid)
+		var name, uuid, sub string
+		err := rows.Scan(&id, &name, &uuid, &sub)
 		if err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue
 		}
-		fmt.Printf("%d.%s.%s\n", id, name, uuid)
+		fmt.Printf("%d.%s.%s.%s\n", id, name, uuid, sub)
 	}
 
 	if err := rows.Err(); err != nil {

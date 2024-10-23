@@ -104,6 +104,7 @@ type Inbound struct {
 type User struct {
 	Name string `json:"name,omitempty"`
 	UUID string `json:"uuid,omitempty"`
+	SUB  string `json:"sub,omitempty"`
 }
 
 // TLS is the structure of the TLS block in the inbound block.
@@ -216,7 +217,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 		return fmt.Errorf("error querying log table: %v", err)
 	}
 
-	fmt.Println("inbound1")
 	// Fetch all users once
 	var allUsers []User
 	userRows, err := db.Query("SELECT name, uuid FROM users")
@@ -224,8 +224,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 		return fmt.Errorf("error querying users table: %v", err)
 	}
 	defer userRows.Close()
-
-	fmt.Println("inbound2")
 
 	for userRows.Next() {
 		var user User
@@ -235,8 +233,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 		}
 		allUsers = append(allUsers, user)
 	}
-
-	fmt.Println("inbound3")
 
 	// Query to fetch inbounds, transports, tls, reality, and handshake data
 	rows, err := db.Query(`
@@ -255,7 +251,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
     LEFT JOIN reality r ON reality_id = r.id
     LEFT JOIN handshake h ON handshake_id = h.id
 `)
-	fmt.Println("inbound3.25")
 
 	// Check if the query resulted in an error
 	if err != nil {
@@ -263,7 +258,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 		return fmt.Errorf("error querying inbounds table: %v", err)
 	}
 
-	fmt.Println("inbound3.5")
 	defer rows.Close()
 
 	for rows.Next() {
@@ -336,8 +330,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 
 		config.Inbounds = append(config.Inbounds, inbound)
 	}
-
-	fmt.Println("inbound5")
 
 	return nil
 }
