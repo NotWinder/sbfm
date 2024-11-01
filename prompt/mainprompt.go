@@ -33,7 +33,7 @@ func HandleMenu(scanner *bufio.Scanner, dbConnection *sql.DB) {
 		choice := DisplayMenu()
 		switch choice {
 		case 1:
-			HandleUserManagementMenu(scanner, dbConnection)
+			HandleUserManagementMenu(dbConnection)
 		case 2:
 			jsonhandler.GenerateConfigFile(dbConnection)
 		case 3:

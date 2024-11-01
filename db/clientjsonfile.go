@@ -14,7 +14,7 @@ import (
 // GenerateUserJSONFiles generates JSON files for each user based on a template
 func GenerateUserJSONFiles(dbConnection *sql.DB, templateFilePath string) error {
 	// Step 1: Query all users from the database
-	rows, err := dbConnection.Query(`SELECT uuid, name FROM users`)
+	rows, err := dbConnection.Query(`SELECT uuid, name FROM users WHERE active = TRUE`)
 	if err != nil {
 		return fmt.Errorf("error querying users table: %v", err)
 	}
@@ -67,7 +67,7 @@ func GenerateUserJSONFiles(dbConnection *sql.DB, templateFilePath string) error 
 
 		// Step 7: Write the modified JSON to a new file in the users directory
 		fileName := filepath.Join(usersDir, fmt.Sprintf("%s.json", user.Name))
-		if err := os.WriteFile(fileName, modifiedJSON, 0644); err != nil {
+		if err := os.WriteFile(fileName, modifiedJSON, 0o644); err != nil {
 			log.Printf("error writing JSON file for user %s: %v", user.Name, err)
 			continue // Continue processing other users even if one fails
 		}

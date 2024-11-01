@@ -102,9 +102,10 @@ type Inbound struct {
 
 // User is the structure of the user block in the inbound block.
 type User struct {
-	Name string `json:"name,omitempty"`
-	UUID string `json:"uuid,omitempty"`
-	SUB  string `json:"sub,omitempty"`
+	Name   string `json:"name,omitempty"`
+	UUID   string `json:"uuid,omitempty"`
+	SUB    string `json:"sub,omitempty"`
+	Active bool   `json:"active,omitempty"`
 }
 
 // TLS is the structure of the TLS block in the inbound block.
@@ -199,7 +200,7 @@ func GenerateConfigFile(db *sql.DB) error {
 	}
 
 	// Write JSON to file.
-	err = os.WriteFile("./sing-box/config.json", jsonData, 0644)
+	err = os.WriteFile("./sing-box/config.json", jsonData, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing JSON to file: %v", err)
 	}
@@ -219,7 +220,7 @@ func PopulateConfig(db *sql.DB, config *Config) error {
 
 	// Fetch all users once
 	var allUsers []User
-	userRows, err := db.Query("SELECT name, uuid FROM users")
+	userRows, err := db.Query("SELECT name, uuid FROM users WHERE active = TRUE")
 	if err != nil {
 		return fmt.Errorf("error querying users table: %v", err)
 	}
@@ -251,7 +252,6 @@ func PopulateConfig(db *sql.DB, config *Config) error {
     LEFT JOIN reality r ON reality_id = r.id
     LEFT JOIN handshake h ON handshake_id = h.id
 `)
-
 	// Check if the query resulted in an error
 	if err != nil {
 		fmt.Printf("Error querying inbounds table: %v\n", err)

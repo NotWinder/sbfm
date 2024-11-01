@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"winder.website/sbfm/jsonhandler"
-	//go-sqlite3 is the sql driver for sqlite in go
+	// go-sqlite3 is the sql driver for sqlite in go
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -31,6 +31,7 @@ func generateRandomString(length int) (string, error) {
 // AddUserManually is responsible for adding a user to the database duh
 func AddUserManually(db *sql.DB) {
 	var name string
+	var active bool
 	fmt.Print("Enter user name: ")
 	fmt.Scanln(&name)
 
@@ -41,7 +42,15 @@ func AddUserManually(db *sql.DB) {
 		fmt.Println("Error:", err)
 	}
 
-	_, err = db.Exec("INSERT INTO users (name, uuid, sub) VALUES (?, ?, ?)", name, uuid, sub)
+	active = true
+
+	_, err = db.Exec(
+		"INSERT INTO users (name, uuid, sub, active) VALUES (?, ?, ?, ?)",
+		name,
+		uuid,
+		sub,
+		active,
+	)
 	if err != nil {
 		log.Printf("Error adding user: %v", err)
 		return
@@ -71,10 +80,11 @@ func AddUsersFromJSON(db *sql.DB) {
 
 	for _, user := range users {
 		_, err := db.Exec(
-			"INSERT INTO users (name, uuid, sub) VALUES (?, ?, ?)",
+			"INSERT INTO users (name, uuid, sub, active) VALUES (?, ?, ?, ?)",
 			user.Name,
 			user.UUID,
 			user.SUB,
+			user.Active,
 		)
 		if err != nil {
 			log.Printf("Error adding user %s: %v", user.Name, err)
@@ -86,7 +96,7 @@ func AddUsersFromJSON(db *sql.DB) {
 
 // PrintAllUsers is responsible for fetching and printing all the users in the users table
 func PrintAllUsers(db *sql.DB) {
-	rows, err := db.Query("SELECT id, name, uuid, sub FROM users")
+	rows, err := db.Query("SELECT id, name, uuid, sub, active FROM users")
 	if err != nil {
 		log.Printf("Error querying users: %v", err)
 		return
@@ -94,18 +104,19 @@ func PrintAllUsers(db *sql.DB) {
 	defer rows.Close()
 
 	fmt.Println("\nAll Users:")
-	fmt.Println("ID.Name.UUID.Sub")
-	fmt.Println("----------------")
+	fmt.Println("ID.Name.UUID.Sub.Active")
+	fmt.Println("--------------------")
 
 	for rows.Next() {
 		var id int
 		var name, uuid, sub string
-		err := rows.Scan(&id, &name, &uuid, &sub)
+		var active bool
+		err := rows.Scan(&id, &name, &uuid, &sub, &active)
 		if err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue
 		}
-		fmt.Printf("%d.%s.%s.%s\n", id, name, uuid, sub)
+		fmt.Printf("%d.%s.%s.%s.%v\n", id, name, uuid, sub, active)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -140,4 +151,37 @@ func DeleteUserByID(db *sql.DB) {
 	} else {
 		fmt.Printf("User with ID %d deleted successfully\n", id)
 	}
+}
+
+// ToggleUserActiveStatus toggles the active status of a user by their ID
+func ToggleUserActiveStatus(db *sql.DB) {
+	var id int
+	var activate bool
+
+	fmt.Print("Enter the ID of the user to modify: ")
+	_, err := fmt.Scanln(&id)
+	if err != nil {
+		log.Printf("Error reading input: %v", err)
+		return
+	}
+
+	fmt.Print("Enter 1 to activate or 0 to deactivate the user: ")
+	_, err = fmt.Scanln(&activate)
+	if err != nil {
+		log.Printf("Error reading input: %v", err)
+		return
+	}
+
+	// Update the active status in the database
+	_, err = db.Exec("UPDATE users SET active = ? WHERE id = ?", activate, id)
+	if err != nil {
+		log.Printf("Error updating user status: %v", err)
+		return
+	}
+
+	status := "activated"
+	if !activate {
+		status = "deactivated"
+	}
+	fmt.Printf("User with ID %d has been %s successfully\n", id, status)
 }

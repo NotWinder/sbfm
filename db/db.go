@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	//go-sqlite3 is the sql driver for sqlite in go
+	// go-sqlite3 is the sql driver for sqlite in go
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -62,7 +62,8 @@ func CreateTables(db *sql.DB) error {
 		    id INTEGER PRIMARY KEY AUTOINCREMENT,
 		    name TEXT NOT NULL,
 		    uuid TEXT NOT NULL UNIQUE,
-		    sub TEXT NOT NULL UNIQUE
+		    sub TEXT NOT NULL UNIQUE,
+            active BOOLEAN NOT NULL DEFAULT TRUE
 		)
 	`)
 	if err != nil {

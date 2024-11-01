@@ -37,7 +37,7 @@ func GenerateUserConfigFiles(dbConnection *sql.DB) error {
 	}
 
 	// Step 4: Query all users from the database, including the sub field
-	rows, err := dbConnection.Query(`SELECT uuid, name, sub FROM users`)
+	rows, err := dbConnection.Query(`SELECT uuid, name, sub FROM users WHERE active = TRUE`)
 	if err != nil {
 		return fmt.Errorf("error querying users table: %v", err)
 	}
@@ -61,7 +61,7 @@ func GenerateUserConfigFiles(dbConnection *sql.DB) error {
 
 		// Step 6: Write the content to a new file in the configs directory
 		fileName := filepath.Join(configsDir, fmt.Sprintf("%s", user.Name))
-		if err := os.WriteFile(fileName, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(fileName, []byte(content), 0o644); err != nil {
 			log.Printf("error writing config file for user %s: %v", user.Name, err)
 			continue // Continue processing other users even if one fails
 		}
