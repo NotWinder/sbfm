@@ -30,3 +30,4 @@ config.db
 users.json
 sing-box
 template.json
+result
